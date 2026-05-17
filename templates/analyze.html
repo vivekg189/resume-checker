@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Analyze — AI CareerForge</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Outfit','sans-serif']}}},corePlugins:{preflight:false}}</script>
+  <style>
+    textarea::placeholder{color:#9AAABB;}
+    textarea{transition:border-color .3s,box-shadow .3s;color:#1E2A3A;}
+    textarea:focus{outline:none;border-color:rgba(79,140,255,.5) !important;box-shadow:0 0 0 3px rgba(79,140,255,.10);}
+  </style>
+</head>
+<body>
+
+<!-- Floating Blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div id="page-transition"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+<canvas id="trail-canvas"></canvas>
+
+<!-- Nav -->
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50" style="background:rgba(255,255,255,0.80);backdrop-filter:blur(20px);border-bottom:1px solid rgba(79,140,255,0.12);box-shadow:0 4px 24px rgba(79,140,255,0.08);">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 no-underline">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);box-shadow:0 4px 14px rgba(79,140,255,.30);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <span class="font-black text-lg" style="color:#1E2A3A;">AI <span class="gradient-text">CareerForge</span></span>
+    </a>
+    <a href="/" class="nav-link flex items-center gap-2 text-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to Home
+    </a>
+  </div>
+</nav>
+
+<div class="min-h-screen flex flex-col items-center justify-start pt-28 pb-16 px-4" style="position:relative;z-index:1;">
+
+  <!-- Page header -->
+  <div class="text-center mb-10 w-full max-w-2xl">
+    <div class="neon-tag mb-4" style="display:inline-flex;"><span class="tag-dot"></span>Interview Readiness Analyzer</div>
+    <h1 class="text-3xl font-black" style="color:#1E2A3A;">Complete Your <span class="gradient-text">Assessment</span></h1>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="w-full max-w-2xl mb-10">
+    <div class="glass-card px-6 py-5">
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot-1">1</div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step-dot" id="dot-2">2</div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step-dot" id="dot-3">3</div>
+        <div class="step-line" id="line-3"></div>
+        <div class="step-dot" id="dot-4">4</div>
+        <div class="step-line" id="line-4"></div>
+        <div class="step-dot" id="dot-5">5</div>
+        <div class="step-line" id="line-5"></div>
+        <div class="step-dot" id="dot-6">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+      <div class="flex justify-between mt-3 px-1">
+        <span class="text-xs font-medium" style="color:#9AAABB;">Role</span>
+        <span class="text-xs font-medium" style="color:#9AAABB;">Resume</span>
+        <span class="text-xs font-medium" style="color:#9AAABB;">AI Scan</span>
+        <span class="text-xs font-medium" style="color:#9AAABB;">Quiz</span>
+        <span class="text-xs font-medium" style="color:#9AAABB;">Intro</span>
+        <span class="text-xs font-medium" style="color:#9AAABB;">Done</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 1: Role ══ -->
+  <div id="step-1" class="wizard-step w-full max-w-2xl">
+    <div class="glass-card p-8 md:p-10">
+      <div class="neon-tag mb-6" style="display:inline-flex;"><span class="tag-dot"></span>Step 1 of 5</div>
+      <h2 class="text-2xl md:text-3xl font-black mb-2" style="color:#1E2A3A;">Select Your Target Role</h2>
+      <p class="text-sm mb-8" style="color:#5A6A82;">We'll personalize your quiz, resume analysis, and roadmap for this track.</p>
+      <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="role-card" data-role="Web Developer">
+          <div class="role-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">Web Developer</h3>
+          <p class="text-xs mt-1" style="color:#9AAABB;">Frontend · Backend · Full-Stack</p>
+        </div>
+        <div class="role-card" data-role="AI/ML">
+          <div class="role-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">AI / ML Engineer</h3>
+          <p class="text-xs mt-1" style="color:#9AAABB;">Machine Learning · Deep Learning</p>
+        </div>
+        <div class="role-card" data-role="Data Analyst">
+          <div class="role-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5EDFFF" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">Data Analyst</h3>
+          <p class="text-xs mt-1" style="color:#9AAABB;">SQL · Python · Visualization</p>
+        </div>
+        <div class="role-card" data-role="UI/UX">
+          <div class="role-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">UI / UX Designer</h3>
+          <p class="text-xs mt-1" style="color:#9AAABB;">Figma · Research · Prototyping</p>
+        </div>
+      </div>
+      <button id="role-next-btn" class="btn-neon w-full justify-center opacity-40" disabled style="pointer-events:none;">
+        Continue
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2: Upload ══ -->
+  <div id="step-2" class="wizard-step hidden w-full max-w-2xl">
+    <div class="glass-card p-8 md:p-10">
+      <div class="neon-tag mb-6" style="display:inline-flex;"><span class="tag-dot"></span>Step 2 of 5</div>
+      <h2 class="text-2xl md:text-3xl font-black mb-2" style="color:#1E2A3A;">Upload Your Resume</h2>
+      <p class="text-sm mb-8" style="color:#5A6A82;">PDF or DOCX — our AI will scan it in seconds.</p>
+      <div id="drop-zone">
+        <div class="mb-5">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style="background:linear-gradient(135deg,rgba(79,140,255,.12),rgba(139,124,255,.08));border:1px solid rgba(79,140,255,.25);box-shadow:0 4px 16px rgba(79,140,255,.10);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+        </div>
+        <p class="font-semibold mb-2" style="color:#1E2A3A;" id="file-label">Drag &amp; drop your resume here</p>
+        <p class="text-sm" style="color:#9AAABB;">or click to browse &nbsp;·&nbsp; PDF, DOCX &nbsp;·&nbsp; max 10 MB</p>
+        <input type="file" id="resume-file" accept=".pdf,.docx,.doc" class="hidden"/>
+      </div>
+      <div id="resume-feedback-preview" class="mt-4 min-h-[40px]"></div>
+      <button id="upload-btn" class="btn-neon w-full justify-center mt-6 opacity-40" disabled style="pointer-events:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Analyze Resume
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3: AI Processing ══ -->
+  <div id="step-3" class="wizard-step hidden w-full max-w-2xl">
+    <div class="glass-card p-10 text-center">
+      <div class="neon-tag mb-8 mx-auto" style="display:inline-flex;"><span class="tag-dot"></span>AI Processing</div>
+      <div class="processing-orb mb-8"></div>
+      <h2 class="text-2xl font-black mb-3" style="color:#1E2A3A;">Analyzing Your Resume</h2>
+      <p class="text-sm mb-2" style="color:#5A6A82;" id="processing-status">Initializing AI engine...</p>
+      <p class="text-sm font-mono min-h-[24px]" style="color:#4F8CFF;" id="ai-typewriter"></p>
+      <div class="mt-8 flex justify-center"><div class="loading-ring"></div></div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 4: Quiz ══ -->
+  <div id="step-4" class="wizard-step hidden w-full max-w-2xl">
+    <div class="glass-card p-8 md:p-10">
+      <div class="flex items-center justify-between mb-6">
+        <div class="neon-tag" style="display:inline-flex;"><span class="tag-dot"></span>Technical Quiz</div>
+        <span class="text-xs font-mono" style="color:#9AAABB;" id="quiz-q-num">Question 1 of 5</span>
+      </div>
+      <div class="w-full h-1.5 rounded-full mb-7" style="background:rgba(79,140,255,.10);">
+        <div id="quiz-progress" class="h-full rounded-full transition-all duration-700" style="background:linear-gradient(90deg,#4F8CFF,#8B7CFF);width:20%;"></div>
+      </div>
+      <h2 class="text-lg font-bold mb-6 leading-snug" style="color:#1E2A3A;" id="quiz-question">Loading question...</h2>
+      <div class="space-y-3 mb-8" id="quiz-options"></div>
+      <p class="text-sm font-semibold text-center mb-4 min-h-[20px]" style="color:#5A6A82;" id="quiz-result"></p>
+      <button id="quiz-next-btn" class="btn-neon w-full justify-center opacity-40" disabled style="pointer-events:none;">
+        Next Question
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 5: Communication ══ -->
+  <div id="step-5" class="wizard-step hidden w-full max-w-2xl">
+    <div class="glass-card p-8 md:p-10">
+      <div class="neon-tag mb-6" style="display:inline-flex;"><span class="tag-dot"></span>Step 4 of 5</div>
+      <h2 class="text-2xl md:text-3xl font-black mb-2" style="color:#1E2A3A;">Self Introduction</h2>
+      <p class="text-sm mb-2" style="color:#5A6A82;">Write a brief self-introduction as you would say in an interview. AI will evaluate confidence, clarity, and role alignment.</p>
+      <p class="text-xs italic mb-5" style="color:#9AAABB;">"Tell me about yourself and what you're looking for…"</p>
+      <textarea
+        id="intro-textarea" rows="7"
+        placeholder="Hi, I'm [Name]. I'm a [role] with [X] years of experience in [skills]. I've worked on [projects]. I'm passionate about [interest]..."
+        class="w-full rounded-2xl p-5 text-sm resize-none"
+        style="background:rgba(255,255,255,.75);border:1px solid rgba(79,140,255,.18);font-family:'Outfit',sans-serif;backdrop-filter:blur(10px);"
+      ></textarea>
+      <div class="flex justify-between items-center mt-3 mb-7">
+        <span class="text-xs" style="color:#9AAABB;"><span id="char-count" style="color:#5A6A82;">0</span> characters</span>
+        <span class="text-xs" style="color:#9AAABB;">Minimum 50 recommended</span>
+      </div>
+      <button id="comm-submit-btn" class="btn-neon btn-pulse w-full justify-center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Get My Full Report
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 6: Final Processing ══ -->
+  <div id="step-6" class="wizard-step hidden w-full max-w-2xl">
+    <div class="glass-card p-10 text-center">
+      <div class="neon-tag mb-8 mx-auto" style="display:inline-flex;"><span class="tag-dot"></span>Generating Report</div>
+      <div class="processing-orb mb-8"></div>
+      <h2 class="text-2xl font-black mb-3" style="color:#1E2A3A;">Building Your CareerForge Report</h2>
+      <p class="text-sm font-mono min-h-[24px]" style="color:#4F8CFF;" id="final-msgs">Analyzing communication patterns...</p>
+      <div class="mt-10 grid grid-cols-3 gap-4">
+        <div class="glass-card p-5 text-center">
+          <div class="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center" style="background:rgba(79,140,255,.10);border:1px solid rgba(79,140,255,.20);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <p class="text-xs mb-1" style="color:#9AAABB;">Resume</p>
+          <p class="text-xs font-bold" style="color:#4F8CFF;">Analyzed</p>
+        </div>
+        <div class="glass-card p-5 text-center">
+          <div class="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center" style="background:rgba(139,124,255,.10);border:1px solid rgba(139,124,255,.20);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+          </div>
+          <p class="text-xs mb-1" style="color:#9AAABB;">Technical</p>
+          <p class="text-xs font-bold" style="color:#8B7CFF;">Scored</p>
+        </div>
+        <div class="glass-card p-5 text-center">
+          <div class="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center" style="background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.20);">
+            <div class="loading-ring" style="width:20px;height:20px;border-width:2px;border-top-color:#f59e0b;"></div>
+          </div>
+          <p class="text-xs mb-1" style="color:#9AAABB;">Comms</p>
+          <p class="text-xs font-bold" style="color:#f59e0b;">Processing</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="{{ url_for('static', filename='js/effects.js') }}"></script>
+<script src="{{ url_for('static', filename='js/analyzer.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  goToStep(1);
+  const obs = new MutationObserver(() => {
+    const s4 = document.getElementById('step-4');
+    if (s4 && !s4.classList.contains('hidden') && typeof STATE !== 'undefined' && STATE.questions.length > 0 && STATE.quizIndex === 0) {
+      renderQuestion(0);
+    }
+  });
+  const s4 = document.getElementById('step-4');
+  if (s4) obs.observe(s4, { attributes: true, attributeFilter: ['class'] });
+});
+</script>
+</body>
+</html>

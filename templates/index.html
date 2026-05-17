@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AI CareerForge — Interview Readiness Analyzer</title>
+  <meta name="description" content="Measure your interview readiness with AI. Get recruiter-level feedback in under 2 minutes."/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Outfit','sans-serif']}}},corePlugins:{preflight:false}}</script>
+</head>
+<body>
+
+<!-- Floating Blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<!-- Page Transition -->
+<div id="page-transition"></div>
+
+<!-- Custom Cursor -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+<canvas id="trail-canvas"></canvas>
+
+<!-- ── Navigation ── -->
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50" style="transition:background .4s,border .4s,transform .3s cubic-bezier(.23,1,.32,1);">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 no-underline group">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);box-shadow:0 4px 14px rgba(79,140,255,.30);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <span class="font-black text-lg tracking-tight" style="color:#1E2A3A;">AI <span class="gradient-text">CareerForge</span></span>
+    </a>
+    <div class="hidden md:flex items-center gap-1">
+      <a href="#features"     class="nav-link">Features</a>
+      <a href="#how-it-works" class="nav-link">How It Works</a>
+      <a href="#stats"        class="nav-link">Stats</a>
+      <a href="/analyze" class="btn-neon ml-4" style="padding:10px 24px;font-size:.86rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Get Started
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="padding-top:80px;">
+  <canvas id="hero-canvas"></canvas>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+
+    <div class="neon-tag mb-8 hero-tag" style="display:inline-flex;">
+      <span class="tag-dot"></span>
+      AI-Powered Career Intelligence
+    </div>
+
+    <h1 class="text-5xl md:text-7xl font-black mb-6 leading-[1.08] tracking-tight hero-h1" style="color:#1E2A3A;">
+      Measure Your<br/>
+      <span class="gradient-text">Interview Readiness</span><br/>
+      <span style="color:#5A6A82;">with AI</span>
+    </h1>
+
+    <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed hero-sub" style="color:#5A6A82;">
+      Get <strong style="color:#1E2A3A;font-weight:700;">recruiter-level feedback</strong> in under 2 minutes.
+      Resume analysis, adaptive quiz, communication scoring — all in one report.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center hero-ctas">
+      <a href="/analyze" class="btn-neon btn-pulse" id="hero-cta">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Analyze My Readiness
+      </a>
+      <a href="#how-it-works" class="btn-outline">
+        See how it works
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </div>
+
+    <!-- Floating stat badges -->
+    <div class="mt-16 flex flex-wrap justify-center gap-4 hero-badges">
+      <div class="glass-card px-5 py-4 flex items-center gap-3 float-anim" style="animation-delay:.1s;">
+        <div class="icon-box icon-box-blue" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="text-left">
+          <p class="text-xs" style="color:#9AAABB;">Resume Score</p>
+          <p class="font-bold text-sm" style="color:#4F8CFF;">87 / 100</p>
+        </div>
+      </div>
+      <div class="glass-card px-5 py-4 flex items-center gap-3 float-anim" style="animation-delay:.4s;">
+        <div class="icon-box icon-box-purple" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="2" stroke-linecap="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="text-left">
+          <p class="text-xs" style="color:#9AAABB;">Technical</p>
+          <p class="font-bold text-sm" style="color:#8B7CFF;">92%</p>
+        </div>
+      </div>
+      <div class="glass-card px-5 py-4 flex items-center gap-3 float-anim" style="animation-delay:.7s;">
+        <div class="icon-box icon-box-green" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="text-left">
+          <p class="text-xs" style="color:#9AAABB;">Readiness</p>
+          <p class="font-bold text-sm" style="color:#10b981;">Interview Ready</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-40" style="animation:float 3s ease-in-out infinite;">
+    <p class="text-xs tracking-widest uppercase" style="color:#9AAABB;">scroll</p>
+    <div style="width:1px;height:40px;background:linear-gradient(180deg,rgba(79,140,255,.6),transparent);"></div>
+  </div>
+</section>
+
+<!-- ── Stats ── -->
+<section id="stats" class="py-28 relative z-10">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 gsap-stagger">
+      <div class="glass-card stats-card p-8 text-center hover-lift">
+        <div class="counter-num" data-counter="10000" data-suffix="+">0+</div>
+        <p class="text-sm mt-3" style="color:#9AAABB;">Resumes Analyzed</p>
+      </div>
+      <div class="glass-card stats-card p-8 text-center hover-lift">
+        <div class="counter-num" data-counter="92" data-suffix="%">0%</div>
+        <p class="text-sm mt-3" style="color:#9AAABB;">AI Accuracy</p>
+      </div>
+      <div class="glass-card stats-card p-8 text-center hover-lift">
+        <div class="counter-num" data-counter="2" data-suffix=" min">0 min</div>
+        <p class="text-sm mt-3" style="color:#9AAABB;">Average Time</p>
+      </div>
+      <div class="glass-card stats-card p-8 text-center hover-lift">
+        <div class="counter-num" data-counter="4800" data-suffix="+">0+</div>
+        <p class="text-sm mt-3" style="color:#9AAABB;">Students Helped</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section id="features" class="py-28 relative z-10">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-20">
+      <div class="section-divider"></div>
+      <h2 class="text-4xl md:text-5xl font-black mb-5 gsap-reveal" style="color:#1E2A3A;">
+        Everything to <span class="gradient-text">Land the Job</span>
+      </h2>
+      <p class="max-w-xl mx-auto gsap-reveal" style="color:#5A6A82;">Five intelligent analyzers working together to give you an unfair advantage.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 gsap-stagger">
+
+      <div class="glass-card glow-border-anim p-8 hover-lift">
+        <div class="icon-box icon-box-blue mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Resume Analysis</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">ATS compatibility, keyword optimization, and recruiter-grade feedback on structure, clarity, and impact.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">ATS Score</span><span class="skill-tag">Keywords</span><span class="skill-tag">Clarity</span>
+        </div>
+      </div>
+
+      <div class="glass-card glow-border-anim p-8 hover-lift">
+        <div class="icon-box icon-box-purple mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Technical Evaluation</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">Role-adaptive 5-question quiz calibrated to Web Dev, AI/ML, Data Analyst, or UI/UX tracks.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">Adaptive</span><span class="skill-tag">5 Questions</span><span class="skill-tag">Instant Score</span>
+        </div>
+      </div>
+
+      <div class="glass-card glow-border-anim p-8 hover-lift">
+        <div class="icon-box icon-box-amber mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Communication Insights</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">AI evaluates your self-introduction for confidence, clarity, structure, and role alignment.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">Confidence</span><span class="skill-tag">Clarity</span><span class="skill-tag">Rewrite</span>
+        </div>
+      </div>
+
+      <div class="glass-card glow-border-anim p-8 hover-lift">
+        <div class="icon-box icon-box-green mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Portfolio Review</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">Evaluates GitHub presence, deployed projects, and portfolio links extracted from your resume.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">GitHub</span><span class="skill-tag">Projects</span><span class="skill-tag">Links</span>
+        </div>
+      </div>
+
+      <div class="glass-card glow-border-anim p-8 hover-lift">
+        <div class="icon-box icon-box-cyan mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5EDFFF" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Personalized Roadmap</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">Get a 4-week action plan with curated resources, quick wins, and skill gap analysis.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">4-Week Plan</span><span class="skill-tag">Resources</span><span class="skill-tag">Quick Wins</span>
+        </div>
+      </div>
+
+      <div class="glass-card glow-border-anim p-8 hover-lift" style="background:linear-gradient(135deg,rgba(79,140,255,.07),rgba(139,124,255,.04));">
+        <div class="icon-box icon-box-pink mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <h3 class="font-bold text-lg mb-2" style="color:#1E2A3A;">Analytics Dashboard</h3>
+        <p class="text-sm leading-relaxed mb-4" style="color:#5A6A82;">Animated radar charts, circular progress bars, and industry benchmark comparisons in a premium UI.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="skill-tag">Radar Chart</span><span class="skill-tag">Benchmarks</span><span class="skill-tag">Scores</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section id="how-it-works" class="py-28 relative z-10">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <div class="section-divider"></div>
+      <h2 class="text-4xl font-black mb-4 gsap-reveal" style="color:#1E2A3A;">How It Works</h2>
+      <p class="gsap-reveal" style="color:#5A6A82;">Four steps. Two minutes. One complete picture.</p>
+    </div>
+    <div class="space-y-5 gsap-stagger">
+      <div class="glass-card p-6 flex items-start gap-6 hover-lift">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);color:white;box-shadow:0 4px 14px rgba(79,140,255,.30);">1</div>
+        <div>
+          <h3 class="font-bold text-base mb-1" style="color:#1E2A3A;">Select Your Target Role</h3>
+          <p class="text-sm leading-relaxed" style="color:#5A6A82;">Choose from Web Developer, AI/ML, Data Analyst, or UI/UX to personalize your entire assessment.</p>
+        </div>
+      </div>
+      <div class="glass-card p-6 flex items-start gap-6 hover-lift">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);color:white;box-shadow:0 4px 14px rgba(79,140,255,.30);">2</div>
+        <div>
+          <h3 class="font-bold text-base mb-1" style="color:#1E2A3A;">Upload Your Resume</h3>
+          <p class="text-sm leading-relaxed" style="color:#5A6A82;">Drag and drop your PDF or DOCX. Our AI scans it for ATS compatibility, keywords, and project impact.</p>
+        </div>
+      </div>
+      <div class="glass-card p-6 flex items-start gap-6 hover-lift">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);color:white;box-shadow:0 4px 14px rgba(79,140,255,.30);">3</div>
+        <div>
+          <h3 class="font-bold text-base mb-1" style="color:#1E2A3A;">Take the Technical Quiz</h3>
+          <p class="text-sm leading-relaxed" style="color:#5A6A82;">5 adaptive questions calibrated to your role. Instant feedback on every answer with explanations.</p>
+        </div>
+      </div>
+      <div class="glass-card p-6 flex items-start gap-6 hover-lift">
+        <div class="w-11 h-11 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);color:white;box-shadow:0 4px 14px rgba(79,140,255,.30);">4</div>
+        <div>
+          <h3 class="font-bold text-base mb-1" style="color:#1E2A3A;">Get Your Full Report</h3>
+          <p class="text-sm leading-relaxed" style="color:#5A6A82;">A complete analytics dashboard with your readiness score, skill gaps, roadmap, and industry benchmarks.</p>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-14 gsap-reveal">
+      <a href="/analyze" class="btn-neon btn-pulse">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Start Your Assessment
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="py-14 relative z-10" style="border-top:1px solid rgba(79,140,255,.12);">
+  <div class="max-w-6xl mx-auto px-6 text-center">
+    <div class="flex items-center justify-center gap-3 mb-4">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);box-shadow:0 4px 12px rgba(79,140,255,.25);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <span class="font-bold text-base" style="color:#1E2A3A;">AI <span class="gradient-text">CareerForge</span></span>
+    </div>
+    <p class="text-sm" style="color:#9AAABB;">Powered by Groq AI · Built for next-generation career intelligence</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="{{ url_for('static', filename='js/effects.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hero.js') }}"></script>
+
+<script>
+// Glassmorphism nav scroll effect
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 20) {
+    nav.style.background = 'rgba(255,255,255,0.80)';
+    nav.style.backdropFilter = 'blur(20px)';
+    nav.style.borderBottom = '1px solid rgba(79,140,255,0.12)';
+    nav.style.boxShadow = '0 4px 24px rgba(79,140,255,0.08)';
+  } else {
+    nav.style.background = 'transparent';
+    nav.style.backdropFilter = 'none';
+    nav.style.borderBottom = 'none';
+    nav.style.boxShadow = 'none';
+  }
+});
+
+// Counter animation
+document.querySelectorAll('[data-counter]').forEach(el => {
+  const target = +el.dataset.counter, suffix = el.dataset.suffix || '';
+  let start = null;
+  const step = ts => {
+    if (!start) start = ts;
+    const p = Math.min((ts - start) / 1800, 1);
+    el.textContent = Math.floor(p * target) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  };
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { requestAnimationFrame(step); obs.disconnect(); }
+  });
+  obs.observe(el);
+});
+</script>
+</body>
+</html>

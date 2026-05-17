@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Results Dashboard — AI CareerForge</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Outfit','sans-serif']}}},corePlugins:{preflight:false}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Floating Blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div id="page-transition"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+<canvas id="trail-canvas"></canvas>
+
+<!-- Nav -->
+<nav id="main-nav" class="fixed top-0 left-0 right-0 z-50" style="background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(79,140,255,0.12);box-shadow:0 4px 24px rgba(79,140,255,0.08);">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 no-underline">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#4F8CFF,#8B7CFF);box-shadow:0 4px 14px rgba(79,140,255,.30);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <span class="font-black text-lg" style="color:#1E2A3A;">AI <span class="gradient-text">CareerForge</span></span>
+    </a>
+    <a href="/analyze" class="btn-neon" style="padding:10px 22px;font-size:.85rem;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Analysis
+    </a>
+  </div>
+</nav>
+
+<!-- Loading -->
+<div id="dashboard-loader" class="min-h-screen flex flex-col items-center justify-center gap-6" style="position:relative;z-index:1;">
+  <div class="processing-orb"></div>
+  <p style="color:#5A6A82;">Loading your results...</p>
+  <div class="loading-ring"></div>
+</div>
+
+<!-- Error -->
+<div id="dashboard-error" class="hidden min-h-screen flex items-center justify-center px-4" style="position:relative;z-index:1;">
+  <div class="glass-card p-10 text-center max-w-md w-full">
+    <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.20);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <h2 class="text-xl font-bold mb-2" style="color:#ef4444;">Error Loading Results</h2>
+    <p class="text-sm mb-7" style="color:#5A6A82;" id="dashboard-error-msg">Session not found.</p>
+    <a href="/analyze" class="btn-neon">Start New Analysis</a>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard-content" class="hidden pt-28 pb-20 px-4" style="position:relative;z-index:1;">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div class="neon-tag mb-4" style="display:inline-flex;"><span class="tag-dot"></span>Your CareerForge Report</div>
+      <h1 class="text-3xl md:text-4xl font-black mb-2" style="color:#1E2A3A;">Interview Readiness <span class="gradient-text">Analysis</span></h1>
+      <p class="text-sm" style="color:#9AAABB;" id="role-badge">—</p>
+    </div>
+
+    <!-- ── Score Hero Row ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+
+      <!-- Overall Score -->
+      <div class="glass-card p-8 text-center flex flex-col items-center hover-lift">
+        <p class="text-xs font-semibold uppercase tracking-widest mb-5" style="color:#9AAABB;">Overall Readiness</p>
+        <div class="relative mb-5" style="width:200px;height:200px;">
+          <canvas id="score-canvas" width="200" height="200" style="border-radius:50%;"></canvas>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-5xl font-black gradient-text" id="final-score-num">—</span>
+            <span class="text-sm" style="color:#9AAABB;">/100</span>
+          </div>
+        </div>
+        <div class="text-lg font-bold mb-2" style="color:#1E2A3A;" id="readiness-level">—</div>
+        <p class="text-xs leading-relaxed mt-2" style="color:#9AAABB;max-width:220px;" id="percentile-text"></p>
+      </div>
+
+      <!-- Four score circles -->
+      <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+
+        <div class="glass-card p-6 flex flex-col items-center text-center hover-lift">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="icon-box icon-box-blue" style="width:34px;height:34px;border-radius:9px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:#9AAABB;">Resume</span>
+          </div>
+          <div id="resume-progress" class="circular-progress"></div>
+          <p class="text-2xl font-black mt-3" style="color:#4F8CFF;"><span id="resume-score-num">—</span><span class="text-sm" style="color:#9AAABB;">/100</span></p>
+          <p class="text-xs mt-1" style="color:#9AAABB;">ATS: <span id="ats-score-num" style="color:#8B7CFF;font-weight:700;">—</span></p>
+        </div>
+
+        <div class="glass-card p-6 flex flex-col items-center text-center hover-lift">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="icon-box icon-box-purple" style="width:34px;height:34px;border-radius:9px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+            </div>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:#9AAABB;">Technical</span>
+          </div>
+          <div id="tech-progress" class="circular-progress"></div>
+          <p class="text-2xl font-black mt-3" style="color:#8B7CFF;"><span id="tech-score-num">—</span><span class="text-sm" style="color:#9AAABB;">/100</span></p>
+          <p class="text-xs mt-1" style="color:#9AAABB;">Quiz performance</p>
+        </div>
+
+        <div class="glass-card p-6 flex flex-col items-center text-center hover-lift">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="icon-box icon-box-amber" style="width:34px;height:34px;border-radius:9px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:#9AAABB;">Communication</span>
+          </div>
+          <div id="comm-progress" class="circular-progress"></div>
+          <p class="text-2xl font-black mt-3" style="color:#f59e0b;"><span id="comm-score-num">—</span><span class="text-sm" style="color:#9AAABB;">/100</span></p>
+          <p class="text-xs mt-1" style="color:#9AAABB;">Clarity &amp; confidence</p>
+        </div>
+
+        <div class="glass-card p-6 flex flex-col items-center text-center hover-lift">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="icon-box icon-box-green" style="width:34px;height:34px;border-radius:9px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <span class="text-xs font-semibold uppercase tracking-wider" style="color:#9AAABB;">Portfolio</span>
+          </div>
+          <div id="portfolio-progress" class="circular-progress"></div>
+          <p class="text-2xl font-black mt-3" style="color:#10b981;"><span id="portfolio-score-num">—</span><span class="text-sm" style="color:#9AAABB;">/100</span></p>
+          <p class="text-xs mt-1" style="color:#9AAABB;">GitHub &amp; projects</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Charts ── -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+      <div class="chart-container hover-lift">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="icon-box icon-box-blue" style="width:34px;height:34px;border-radius:9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">Skill Radar</h3>
+        </div>
+        <canvas id="radar-chart" height="240"></canvas>
+      </div>
+      <div class="chart-container hover-lift">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="icon-box icon-box-purple" style="width:34px;height:34px;border-radius:9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B7CFF" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 class="font-bold text-sm" style="color:#1E2A3A;">Industry Benchmark</h3>
+        </div>
+        <canvas id="bar-chart" height="240"></canvas>
+      </div>
+    </div>
+
+    <!-- ── Resume Analysis ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+      <div class="glass-card p-7 hover-lift">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="icon-box icon-box-blue" style="width:38px;height:38px;border-radius:10px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3 class="font-bold" style="color:#1E2A3A;">Resume Analysis</h3>
+        </div>
+        <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9AAABB;">Recruiter Comments</p>
+        <p class="text-sm italic mb-5 leading-relaxed" style="color:#5A6A82;" id="recruiter-comments"></p>
+        <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9AAABB;">AI Feedback</p>
+        <p class="text-sm mb-5 leading-relaxed" style="color:#5A6A82;" id="feedback-summary"></p>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Strengths</p>
+            <ul id="strengths-list" class="space-y-2"></ul>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Weaknesses</p>
+            <ul id="weaknesses-list" class="space-y-2"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-7 hover-lift">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="icon-box icon-box-cyan" style="width:38px;height:38px;border-radius:10px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5EDFFF" stroke-width="1.8" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </div>
+          <h3 class="font-bold" style="color:#1E2A3A;">Skills Detected</h3>
+        </div>
+        <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Found in Resume</p>
+        <div id="skills-found-list" class="flex flex-wrap gap-2 mb-6"></div>
+        <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:rgba(239,68,68,.7);">Missing Keywords</p>
+        <div id="missing-skills-list" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- ── Communication ── -->
+    <div class="glass-card p-7 mb-6 hover-lift">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="icon-box icon-box-amber" style="width:38px;height:38px;border-radius:10px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="font-bold" style="color:#1E2A3A;">Communication Analysis</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Strengths</p>
+          <ul id="comm-positives-list" class="space-y-2"></ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Improvements</p>
+          <ul id="comm-improvements-list" class="space-y-2"></ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Suggested Rewrite</p>
+          <p class="text-sm italic p-4 rounded-xl leading-relaxed" style="background:rgba(79,140,255,.06);border:1px solid rgba(79,140,255,.15);color:#4F8CFF;" id="rewritten-sample"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Roadmap ── -->
+    <div class="glass-card p-7 mb-6 hover-lift">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="icon-box icon-box-green" style="width:38px;height:38px;border-radius:10px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+        </div>
+        <h3 class="font-bold" style="color:#1E2A3A;">4-Week Personalized Roadmap</h3>
+      </div>
+      <div class="mb-5">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9AAABB;">Skill Gaps to Address</p>
+        <div id="skill-gaps-list" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+        <div class="week-card" id="week-1"></div>
+        <div class="week-card" id="week-2"></div>
+        <div class="week-card" id="week-3"></div>
+        <div class="week-card" id="week-4"></div>
+      </div>
+    </div>
+
+    <!-- ── Quick Wins & Resources ── -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+      <div class="glass-card p-7 hover-lift">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="icon-box icon-box-amber" style="width:38px;height:38px;border-radius:10px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3 class="font-bold" style="color:#1E2A3A;">Quick Wins This Week</h3>
+        </div>
+        <ul id="quick-wins-list" class="space-y-3"></ul>
+      </div>
+      <div class="glass-card p-7 hover-lift">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="icon-box icon-box-blue" style="width:38px;height:38px;border-radius:10px;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4F8CFF" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3 class="font-bold" style="color:#1E2A3A;">Top Resources</h3>
+        </div>
+        <div id="resources-list" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- ── CTA ── -->
+    <div class="text-center flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="/analyze" class="btn-neon btn-pulse">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        New Analysis
+      </a>
+      <button onclick="window.print()" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Export Report
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="{{ url_for('static', filename='js/effects.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+function showError(msg) {
+  document.getElementById('dashboard-loader')?.classList.add('hidden');
+  const errEl = document.getElementById('dashboard-error');
+  const msgEl = document.getElementById('dashboard-error-msg');
+  if (errEl) errEl.classList.remove('hidden');
+  if (msgEl) msgEl.textContent = msg;
+}
+</script>
+</body>
+</html>
