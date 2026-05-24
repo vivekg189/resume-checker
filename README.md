@@ -2,7 +2,6 @@
 
 > **AI-powered Interview Readiness Analyzer** that evaluates a student’s interview preparation in under **2 minutes** using Resume Intelligence, Technical Assessment, Communication Analysis, and Personalized Career Guidance.
 
----
 
 ## 🌟 Overview
 
@@ -10,7 +9,6 @@ AI CareerForge helps students and fresh graduates understand how prepared they a
 
 Whether you're preparing for placements, internships, or your first developer role, CareerForge provides recruiter-style insights instantly.
 
----
 
 # ✨ Features
 
@@ -57,7 +55,6 @@ Whether you're preparing for placements, internships, or your first developer ro
 - Performance breakdown
 - Readiness visualization
 
----
 
 # 🧪 Tech Stack
 
@@ -69,43 +66,7 @@ Whether you're preparing for placements, internships, or your first developer ro
 | Database | SQLite |
 | Resume Parsing | PyMuPDF, python-docx |
 
----
 
-# 📁 Project Structure
-
-```bash
-AIcareer/
-├── app.py
-├── requirements.txt
-├── .env
-├── careerforge.db
-│
-├── utils/
-│   ├── resume_parser.py
-│   ├── ai_analyzer.py
-│   └── score_calculator.py
-│
-├── templates/
-│   ├── index.html
-│   ├── analyze.html
-│   └── dashboard.html
-│
-├── static/
-│   ├── css/
-│   │   └── style.css
-│   │
-│   ├── js/
-│   │   ├── hero.js
-│   │   ├── analyzer.js
-│   │   ├── dashboard.js
-│   │   └── effects.js
-│   │
-│   └── uploads/
-│
-└── README.md
-```
-
----
 
 # ⚙️ Installation & Setup
 
@@ -116,7 +77,6 @@ git clone <your-repository-url>
 cd AIcareer
 ```
 
----
 
 ## 2️⃣ Create Virtual Environment
 
@@ -132,7 +92,6 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
----
 
 ## 3️⃣ Install Dependencies
 
@@ -140,7 +99,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
 
 ## 4️⃣ Configure Environment Variables
 
@@ -154,7 +112,6 @@ FLASK_SECRET_KEY=your_secret_key_here
 Get your Gemini API key from:
 https://aistudio.google.com/app/apikey
 
----
 
 ## 5️⃣ Run the Application
 
@@ -168,7 +125,7 @@ Open your browser and visit:
 http://localhost:5000
 ```
 
----
+
 
 # 🎯 Scoring System
 
@@ -184,7 +141,7 @@ Final Score = 40% Resume
 | 50 – 74 | Intermediate |
 | 75 – 100 | Interview Ready |
 
----
+
 
 # 🔒 Environment Variables
 
@@ -193,7 +150,7 @@ Final Score = 40% Resume
 | `GEMINI_API_KEY` | Google Gemini API key |
 | `FLASK_SECRET_KEY` | Flask session security key |
 
----
+
 
 # 📸 Dashboard Highlights
 
@@ -203,7 +160,7 @@ Final Score = 40% Resume
 - Career Readiness Percentage
 - Personalized Improvement Plan
 
----
+
 
 # 🚀 Future Enhancements
 
@@ -214,16 +171,6 @@ Final Score = 40% Resume
 - ☁️ Cloud Deployment Support
 - 📱 Mobile Responsive Optimization
 
----
-
-# 🛡️ Security Notes
-
-- Never commit `.env` files
-- Store API keys securely
-- Clean uploaded files after analysis
-- Use HTTPS in production deployment
-
----
 
 # 🤝 Contributing
 
@@ -234,29 +181,5 @@ Contributions are welcome!
 3. Commit your changes
 4. Push the branch
 5. Open a Pull Request
-
----
-
-# 📜 License
-
-This project is licensed under the **MIT License**.
-
----
-
-# 👨‍💻 Author
-
-Developed with ❤️ by **Vivek**
-
----
-
-# ⭐ Support
-
-If you like this project:
-
-- ⭐ Star the repository
-- 🍴 Fork the project
-- 🛠️ Contribute improvements
-
----
 
 > “Your career growth starts with preparation — AI CareerForge helps you measure it.” 🚀
